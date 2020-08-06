@@ -5,6 +5,7 @@
 
 
 void rampDown(int isDown);
+void rampLift();
 void armOpen();
 void armClose();
 void armCollectCan();

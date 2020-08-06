@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#define LEFT_OFFSET 15
+#define LEFT_OFFSET 0
 #define RIGHT_OFFSET 0
 #define RUN_FORWARD 767
 #define RUN_REVERSE 767

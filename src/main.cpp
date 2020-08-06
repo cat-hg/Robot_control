@@ -15,7 +15,7 @@
 #define NUM_READINGS 10
 #define RESO_OFFSET 20
 #define DISTANCE_MARGIN 2
-#define TARGET_MARGIN 1
+#define TARGET_MARGIN 3
 
 #define TAPE_THRESHOLD 120
 
@@ -82,25 +82,29 @@ bool tapeDetected() {
    return false;
 }
 
-void fineTune() {
+bool fineTune() {
   uint32_t distToCan = ultrasonic.read();
   int turn_count=0;
 
-  turn_Left(TURN_SPEED, 1000);
+  if (tapeDetected()) {return false;}
+
+  turn_Left(TURN_SPEED, 800);
   // while (true) loops are too scary
-  while (turn_count < 1000) {
+  while (turn_count < 1800) {
+    if (tapeDetected()) {return false;}
     turn_Right(TURN_SPEED, 100);
-    if (distToCan <= distance_target + DISTANCE_MARGIN) {
+    if (ultrasonic.read() <= distance_target + DISTANCE_MARGIN) {
       motor_run(RUN_FORWARD, 300);
-      return;
+      return true;
     }
     turn_count += 100;
   }
-  return;
+  return false;;
 }
 
 
 bool search() {
+  int search_count = 0;
   Serial.println("searching...");
   armOpen();
   delay(250);
@@ -126,9 +130,12 @@ bool search() {
     distance_target = myMin;
     Serial.println("target");
     Serial.println(distance_target);
-    delay(1000);
+    display.clearDisplay();
+    display.println(distance_target);
+    display.display();
+    delay(900);
 
-    while (true) {
+    while (search_count < 1500) {
       if (tapeDetected()) {
         return false;
       }
@@ -140,9 +147,9 @@ bool search() {
       
       turn_Right(TURN_SPEED, 100);
       delay(20);
-      
+      search_count += 100;
     }
-  
+  return false;
   
 }
 
@@ -219,11 +226,12 @@ void setup() {
 
 
 void loop() {
-  
-  search();
+  armCollectCan();
   delay(5000);
   /*
+  
   if (state == STATE_INIT) {
+   
     // Back up onto box and set servo arm position
     armOpen();
     delay(500);
@@ -235,10 +243,12 @@ void loop() {
   }
 
   else if (state == STATE_SEARCH) {
+   
     // Searches for a can and stops when one is found OR tape is detected
     if (search()) {
       // its always undershooting so give it an extra push
-      turn_Right(TURN_SPEED, 200);
+      
+      turn_Right(TURN_SPEED, 150);
       state = STATE_MOVE_FORWARD;
     }
     else {
@@ -248,9 +258,15 @@ void loop() {
   }
 
   else if (state == STATE_MOVE_FORWARD) {
+   
     if (ultrasonic.read() > distance_target + TARGET_MARGIN) {
-      fineTune();
-      state = STATE_MOVE_FORWARD;
+      
+      if (fineTune()) {
+        state = STATE_MOVE_FORWARD;
+      }
+      else {
+        state = STATE_TAPE_DETECTED;
+      }
     }
     
     if (ultrasonic.read() <= DISTANCE_SWEEP) {
@@ -259,8 +275,14 @@ void loop() {
 
     else {
       motor_run(RUN_FORWARD, 200);
-      state = STATE_MOVE_FORWARD;
+      if (tapeDetected()) {
+        state = STATE_TAPE_DETECTED;
+      } else {
+        state = STATE_MOVE_FORWARD;
+      }
+      
     }
+
   }
 
    //else if (state == STATE_APPROACH_FORWARD_TUNE) {
@@ -270,17 +292,20 @@ void loop() {
   //}
 
   else if (state == STATE_COLLECT) {
+ 
     armCollectCan();
     delay(250);
     state = STATE_SEARCH;
   }
 
   else if (state == STATE_TAPE_DETECTED) {
+ 
     // Tape is detected, rotate 90 degrees
+    motor_reverse(RUN_REVERSE, 800);
     motor_stop();
     turn_Left(TURN_SPEED, 900);
     state = STATE_SEARCH; 
   }
-  
-*/
+  */
+
 }

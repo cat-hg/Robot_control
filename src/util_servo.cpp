@@ -5,7 +5,7 @@
 void rampDown(int isDown){
   if (isDown) {
     //120 DEGREES - RAMP GO DOWN
-    pwm_start(SERVO_PIN, 50, 2080, TimerCompareFormat_t::MICROSEC_COMPARE_FORMAT);
+    pwm_start(SERVO_PIN, 50, 2070, TimerCompareFormat_t::MICROSEC_COMPARE_FORMAT);
   } else {
     //0 DEGREES - RAMP GO UP
     pwm_start(SERVO_PIN, 50, 800, TimerCompareFormat_t::MICROSEC_COMPARE_FORMAT);
@@ -26,6 +26,10 @@ void armClose() {
         angle_pwm += 10;
         delayMicroseconds(250);
   }
+}
+
+void rampLift() {
+    pwm_start(SERVO_PIN, 50, 2060, TimerCompareFormat_t::MICROSEC_COMPARE_FORMAT);
 }
 
 void armCollectCan() {
